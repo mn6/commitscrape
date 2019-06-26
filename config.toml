@@ -1,0 +1,11 @@
+# Port to run commitscrape on. Default = 7800.
+port = "7800"
+
+# GitHub username
+username = "mn6"
+
+# Allowed origins. Default = ["*"].
+allowedorigins = ["*"]
+
+# Redis expire time. Default = 43200 (12 hours).
+expire = 43200
