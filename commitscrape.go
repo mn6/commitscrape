@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"encoding/json"
 
 	"github.com/BurntSushi/toml"
 	"github.com/PuerkitoBio/goquery"
@@ -19,6 +20,11 @@ import (
 type server struct {
 	Router *chi.Mux
 	DB     *redis.Client
+}
+
+// Result returned to client
+type resRet struct {
+	Html string `json:"html"`
 }
 
 // Configs imported from config.toml
@@ -118,6 +124,7 @@ func main() {
 func calendar(w http.ResponseWriter, r *http.Request) {
 	log.Println("Calendar request!")
 	var calendarHTML string
+	returnJSON := resRet{}
 	w.Header().Set("Content-Type", "application/json")
 	// Check for ?columns= query
 	columnQuery := r.URL.Query().Get("columns")
@@ -146,7 +153,11 @@ func calendar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send it over!
-	w.Write([]byte("{ html: \"" + calendarHTML + "\" }"))
+	returnJSON.Html = calendarHTML
+	js, err := json.Marshal(returnJSON)
+	chk(err)
+
+	w.Write(js)
 }
 
 // Parse calendar HTML into columns requested
