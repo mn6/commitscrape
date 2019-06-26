@@ -1,4 +1,4 @@
-[Screenshot of commitscrape in action](https://i.imgur.com/YTwFI82.png)
+![Screenshot of commitscrape in action](https://i.imgur.com/YTwFI82.png)
 
 # commitscrape
 
