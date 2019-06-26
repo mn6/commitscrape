@@ -11,8 +11,7 @@ Install Redis and Go. Ensure Redis is running.
 3. `go build` and run the binary.
 
 ## API
-### /
-* `GET` : Retrieves GitHub calendar.
+* `GET /` : Retrieves GitHub calendar.
 
 #### Possible query strings:
 * `?columns=<column count>` : Only returns specified column count. Must be a number between 0 and 53.
