@@ -24,10 +24,10 @@ Install Redis and Go. Ensure Redis is running.
 ```
 fetch('<COMMITSCRAPE URL>/?columns=<OPTIONAL AMOUNT OF COLUMNS>')
   .then(response => {
-    return response.text()
+    return response.json()
   })
   .then(res => {
-    document.querySelector('#commits').innerHTML = res
+    document.querySelector('#commits').innerHTML = res.html
   })
 ```
 
