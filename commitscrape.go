@@ -33,6 +33,7 @@ type conf struct {
 	Username       string
 	AllowedOrigins []string
 	Expire         int32
+	AllowedUsers   string
 }
 
 var config = conf{
@@ -40,6 +41,7 @@ var config = conf{
 	Username:       "mn6",
 	AllowedOrigins: []string{"*"},
 	Expire:         43200,
+	AllowedUsers:   "|xaanit|mn6|",
 }
 
 var ghURL string
@@ -69,7 +71,7 @@ const (
 	// Div that will be returned to the client for injection on website
 	// .commitscrape is eventually closed off once processing is finished
 	csRet string = `
-	<div aria-hidden="true" class="commitscrape" style="display:flex;flex-direction:row;width:fit-content;">
+	<div aria-hidden="true" class="commitscrape" style="display:flex;flex-direction:row;width:max-content;">
 	<style>
 	.commitscrape-col:last-child .commitscrape-block{margin-right:0 !important;}
 	.commitscrape-0{background-color:#83c8e6;}
@@ -101,7 +103,7 @@ func main() {
 	if err != nil {
 		log.Println("No /config.toml file found, setting to default...")
 	}
-	ghURL = buildGithubURL()
+	ghURL = buildGithubURL("")
 
 	// Chi router
 	srv.Router = chi.NewRouter()
@@ -128,6 +130,7 @@ func calendar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Check for ?columns= query
 	columnQuery := r.URL.Query().Get("columns")
+	userQuery := r.URL.Query().Get("user")
 	var cols int
 	if len(columnQuery) > 0 {
 		// Convert columns query into int and ensure it's between ( 0 and 52 ]
@@ -136,15 +139,24 @@ func calendar(w http.ResponseWriter, r *http.Request) {
 		if err != nil || cols > 52 || cols <= 0 {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("{ err: \"columns must be a number between 0 and 52\" }"))
+			return
 		}
 	}
 
+	if len(userQuery) > 1 && !strings.Contains(config.AllowedUsers, "|"+userQuery+"|") {
+		log.Println(userQuery)
+		log.Println(config.AllowedUsers)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("{ err: \"unauthorized user\"  }"))
+		return
+	}
+
 	// Get cached HTML from DB
-	getCached(&calendarHTML)
+	getCached(&calendarHTML, userQuery)
 
 	// If not cached, go ahead and scrape
 	if len(calendarHTML) < 1 {
-		scrapeCalendar(&calendarHTML)
+		scrapeCalendar(&calendarHTML, buildGithubURL(userQuery), userQuery)
 	}
 
 	// Parse columns if necessary
@@ -173,9 +185,9 @@ func parseColumns(cols int, calendarHTML *string) {
 }
 
 // Scrape calendar from GH
-func scrapeCalendar(calendarHTML *string) {
+func scrapeCalendar(calendarHTML *string, url string, userQuery string) {
 	retHTML := csRet
-	res, err := h.Get(ghURL)
+	res, err := h.Get(url)
 	chk(err)
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
@@ -202,7 +214,7 @@ func scrapeCalendar(calendarHTML *string) {
 	retHTML = retHTML + "<div class=\"commitscrape-col\">" + keysString(cols) + "</div></div>"
 
 	*calendarHTML = retHTML
-	saveCal(retHTML)
+	saveCal(retHTML, userQuery)
 }
 
 // Spawn a square
@@ -255,13 +267,21 @@ func keysString(m map[int]string) string {
 }
 
 // Save calendar HTML to DB and set expiry to config-provided expire time
-func saveCal(calendarHTML string) {
-	srv.DB.Set(dbKey, calendarHTML, time.Duration(config.Expire)*time.Second)
+func saveCal(calendarHTML string, user string) {
+	key := dbKey
+	if len(user) > 1 {
+		key = "commitscrape:" + user
+	}
+	srv.DB.Set(key, calendarHTML, time.Duration(config.Expire)*time.Second)
 }
 
 // Attempt to get calendar HTML from DB
-func getCached(calendarHTML *string) {
-	html, err := srv.DB.Get(dbKey).Result()
+func getCached(calendarHTML *string, user string) {
+	key := dbKey
+	if len(user) > 1 {
+		key = "commitscrape:" + user
+	}
+	html, err := srv.DB.Get(key).Result()
 
 	if err == redis.Nil {
 		return
@@ -270,10 +290,15 @@ func getCached(calendarHTML *string) {
 }
 
 // Build the GitHub URL needed for scrapery
-func buildGithubURL() string {
+func buildGithubURL(user string) string {
 	s := "https://github.com/users/"
-	s += config.Username
+	if len(user) < 1 {
+		s += config.Username
+	} else {
+		s += user
+	}
 	s += "/contributions"
+	log.Println(s)
 	return s
 }
 

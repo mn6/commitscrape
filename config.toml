@@ -9,3 +9,6 @@ allowedorigins = ["*"]
 
 # Redis expire time. Default = 43200 (12 hours).
 expire = 43200
+
+# Allowed users
+allowedusers = "|xaanit|mn6|"
