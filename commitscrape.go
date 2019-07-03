@@ -71,13 +71,14 @@ const (
 	// Div that will be returned to the client for injection on website
 	// .commitscrape is eventually closed off once processing is finished
 	csRet string = `
-	<div aria-hidden="true" class="commitscrape" style="display:flex;flex-direction:row;width:max-content;">
+	<div aria-hidden="true" class="commitscrape">
 	<style>
 	.commitscrape-col:last-child .commitscrape-block{margin-right:0 !important;}
 	.commitscrape-0{background-color:#83c8e6;}
 	.commitscrape-1{background-color:#3d96bd;}
 	.commitscrape-2{background-color:#166284;}
 	.commitscrape-3{background-color:#0b455f;}
+	.commitscrape-col{display:inline-grid;}
 	</style>
 	`
 )
