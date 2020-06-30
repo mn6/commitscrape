@@ -48,9 +48,10 @@ var ghURL string
 var dbKey string
 var colorFills = map[string]int{
 	"#ebedf0": 0,
-	"#c6e48b": 1,
-	"#7bc96f": 2,
-	"#196127": 3,
+	"#9be9a8": 1,
+	"#40c463": 2,
+	"#30a14e": 3,
+	"#216e39": 4,
 }
 var months = map[string]string{
 	"01": "Jan",
