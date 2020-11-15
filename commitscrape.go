@@ -47,11 +47,11 @@ var config = conf{
 var ghURL string
 var dbKey string
 var colorFills = map[string]int{
-	"#ebedf0": 0,
-	"#9be9a8": 1,
-	"#40c463": 2,
-	"#30a14e": 3,
-	"#216e39": 4,
+	"var(--color-calendar-graph-day-bg)": 0,
+	"var(--color-calendar-graph-day-L1-bg)": 1,
+	"var(--color-calendar-graph-day-L2-bg)": 2,
+	"var(--color-calendar-graph-day-L3-bg)": 3,
+	"var(--color-calendar-graph-day-L4-bg)": 4,
 }
 var months = map[string]string{
 	"01": "Jan",
