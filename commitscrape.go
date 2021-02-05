@@ -75,11 +75,13 @@ const (
 	<div aria-hidden="true" class="commitscrape">
 	<style>
 	.commitscrape-col:last-child .commitscrape-block{margin-right:0 !important;}
-	.commitscrape-0{background-color:#83c8e6;}
-	.commitscrape-1{background-color:#3d96bd;}
-	.commitscrape-2{background-color:#166284;}
-	.commitscrape-3{background-color:#0b455f;}
-	.commitscrape-col{display:inline-grid;}
+  .commitscrape-0{background-color:#161b22;}
+  .commitscrape-1{background-color:#0a373e;}
+  .commitscrape-2{background-color:#105f6b;}
+  .commitscrape-3{background-color:#09798a;}
+  .commitscrape-4{background-color:#05afca;}
+  .commitscrape-col{display:inline-grid;}
+  .commitscrape-block{border-radius: 3px;}
 	</style>
 	`
 )
@@ -202,10 +204,11 @@ func scrapeCalendar(calendarHTML *string, url string, userQuery string) {
 	var cols = make(map[int]string)
 	doc.Find("div.js-calendar-graph svg rect").Each(func(i int, s *goquery.Selection) {
 		index := int(math.Floor(float64(i / 7)))
-		fill, _ := s.Attr("fill")
+		fill, _ := s.Attr("data-level")
+    fillInt, _ := strconv.Atoi(fill)
 		count, _ := s.Attr("data-count")
 		date, _ := s.Attr("data-date")
-		ret := spawnBlock(colorFills[fill], count, date)
+		ret := spawnBlock(fillInt, count, date)
 		if len(cols[index]) < 1 {
 			cols[index] = ret
 		} else {
@@ -232,6 +235,9 @@ func spawnBlock(lvl int, count string, date string) string {
 	// Parse date into human readable format
 	parsedDate := parseDate(date)
 
+  if countMsg == " contributions" {
+    return ""
+  }
 	// Return block
 	return "<div class=\"commitscrape-block commitscrape-" + strconv.Itoa(lvl) + "\" style=\"width:10px;height:10px;margin-bottom:3px;margin-right:3px;\" data-count=\"" + count + "\" data-date=\"" + date + "\" aria-label=\"" + countMsg + " on " + parsedDate + "\"></div>"
 }
@@ -300,7 +306,6 @@ func buildGithubURL(user string) string {
 		s += user
 	}
 	s += "/contributions"
-	log.Println(s)
 	return s
 }
 
